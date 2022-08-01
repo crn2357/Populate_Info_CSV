@@ -6,10 +6,12 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+
 
 class Populate_Info {
 	public static void main(String[] args) {
@@ -41,12 +43,11 @@ class Populate_Info {
 		    	break;
 		    }
 	    }
+		scan.close();
 	    File report = new File(reportCSVFilename);
 	    File inProgress = new File(inProgressExcelFilename);
 	    FileInputStream reportInputStream = null;
 	    FileInputStream inProgressInputStream = null;
-
-        
 		
 		try {
 			reportInputStream = new FileInputStream(report);
@@ -55,27 +56,22 @@ class Populate_Info {
 			inProgressInputStream = new FileInputStream(inProgress);
 			Workbook inprogressWorkbook = WorkbookFactory.create(inProgressInputStream);
 			Sheet inProgressSheet = reportWorkbook.getSheetAt(0);
-			int inProgressAssetTagNum = 0;
-			int inProgressSystemSerialNum = 0;
-			int inProgressModelNum = 0;
-			int reportAssetTagNum = 0;
-			int reportSystemSerialNum = 0;
-			int reportModelNum = 0;
+			DataFormatter formatter = new DataFormatter();
 			for (int i = 0; i < inProgressSheet.getLastRowNum(); i++) {
 				Row inProgressRow = null;
 				if (i == 0) {
 					inProgressRow = inProgressSheet.getRow(0);
 					for (int k = 0; k < inProgressRow.getLastCellNum(); k++) {
 						for (String inProgrssColumnEntry: columnNamesEntrys) {
-							if (inProgressRow.getCell(k).getStringCellValue().equals(inProgrssColumnEntry)) {
-								inProgressColumnNums.add(inProgressRow.getCell(k).getStringCellValue());
+							if (inProgressRow.getCell(k).getStringCellValue().toLowerCase().equals(inProgrssColumnEntry)) {
+								inProgressColumnNums.add(formatter.formatCellValue(inProgressRow.getCell(k)));
 							} else {
 								inProgressColumnNums.add("-1");
 							}
 						}
 						for (String inProgrssRequirementEntry: requirementsNamesEntrys) {
-							if (inProgressRow.getCell(k).getStringCellValue().equals(inProgrssRequirementEntry)) {
-								inProgressRequirementsNums.add(inProgressRow.getCell(k).getStringCellValue());
+							if (inProgressRow.getCell(k).getStringCellValue().toLowerCase().equals(inProgrssRequirementEntry)) {
+								inProgressRequirementsNums.add(formatter.formatCellValue(inProgressRow.getCell(k)));
 							} else {
 								inProgressRequirementsNums.add("-1");
 							}
@@ -91,15 +87,15 @@ class Populate_Info {
 						reportRow = reportSheet.getRow(0);
 						for (int k = 0; k < reportRow.getLastCellNum(); k++) {
 							for (String reportColumnEntry: columnNamesEntrys) {
-								if (reportRow.getCell(k).getStringCellValue().equals(reportColumnEntry)) {
-									reportColumnNums.add(inProgressRow.getCell(k).getStringCellValue());
+								if (reportRow.getCell(k).getStringCellValue().toLowerCase().equals(reportColumnEntry)) {
+									reportColumnNums.add(formatter.formatCellValue(inProgressRow.getCell(k)));
 								} else {
 									reportColumnNums.add("-1");
 								}
 							}
 							for (String reportColumn: requirementsNamesEntrys) {
-								if (reportRow.getCell(k).getStringCellValue().equals(reportColumn)) {
-									reportRequirementsNums.add(inProgressRow.getCell(k).getStringCellValue());
+								if (reportRow.getCell(k).getStringCellValue().toLowerCase().equals(reportColumn)) {
+									reportRequirementsNums.add(formatter.formatCellValue(reportRow.getCell(k)));
 								} else {
 									reportRequirementsNums.add("-1");
 								}
@@ -110,10 +106,14 @@ class Populate_Info {
 						reportRow = reportSheet.getRow(j);
 					}
 					
-					if(reportRequirementsNums.size() > inProgressRequirementsNums.size()) {
+					if(reportRequirementsNums.size() >= inProgressRequirementsNums.size()) {
 						for (int v = 0; v < reportRequirementsNums.size(); v++) {
 							for (int c = 0; c < inProgressRequirementsNums.size(); c++) {
-								if (reportRequirementsNums.get(v).equals(inProgressRequirementsNums.get(c))) {
+								String temp1 = reportRequirementsNums.get(v);
+								String temp2 = inProgressRequirementsNums.get(c);
+								if (reportRequirementsNums.get(v).equals(inProgressRequirementsNums.get(c)) && !reportRequirementsNums.get(v).equals("-1")) {
+									String temp3 = formatter.formatCellValue(inProgressRow.getCell(c));
+									String temp4 = formatter.formatCellValue(reportRow.getCell(v));
 									if(inProgressRow.getCell(c).equals(reportRow.getCell(v))) {										
 										//loop through column names and place the report value in the inprogress sheet
 										for (String columnName: columnNamesEntrys) {
@@ -134,7 +134,7 @@ class Populate_Info {
 						//report in the inprogress report
 						for (int v = 0; v < inProgressRequirementsNums.size(); v++) {
 							for (int c = 0; c < reportRequirementsNums.size(); c++) {
-								if (reportRequirementsNums.get(c).equals(inProgressRequirementsNums.get(v))) {
+								if (reportRequirementsNums.get(c).equals(inProgressRequirementsNums.get(v)) && !reportRequirementsNums.get(v).equals("-1")) {
 									if(inProgressRow.getCell(v).equals(reportRow.getCell(c))) {										
 										//loop through column names and place the report value in the inprogress sheet
 										for (String columnName: columnNamesEntrys) {
